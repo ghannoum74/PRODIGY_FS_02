@@ -53,7 +53,7 @@ body {
   margin: 0 13rem;
   position: relative;
   bottom: 17rem;
-  animation: cloud-top 0.7s linear forwards;
+  animation: cloud-middle 0.7s linear forwards;
   z-index: -20;
 }
 
@@ -73,7 +73,7 @@ body {
   0% {
   }
 }
-@keyframes cloud-top {
+@keyframes cloud-middle {
   0% {
     opacity: 0;
     bottom: 17rem;
@@ -171,7 +171,7 @@ body {
 
 /* arrow stylr */
 .svg-container {
-  transform: rotate(-132deg) translateX(10.5rem) translateY(1rem);
+  transform: rotate(-132deg) translateX(14.5rem) translateY(1rem);
 }
 .line-path {
   stroke-dasharray: 1000;
@@ -194,4 +194,85 @@ body {
   to {
     opacity: 1;
   }
+}
+
+/* rever mounting */
+
+.unmout-component .cloud.middle {
+  animation: reverse-cloud-middle 0.7s linear forwards;
+  opacity: 0;
+}
+
+@keyframes reverse-cloud-middle {
+  0% {
+    opacity: 1;
+    bottom: 6.3rem;
+    margin: 0 -5rem;
+  }
+  100% {
+    opacity: 0;
+    bottom: 18rem;
+    margin: 0 13rem;
+  }
+  80% {
+    opacity: 1;
+    bottom: 5rem;
+  }
+}
+
+.unmout-component .sun {
+  opacity: 0;
+}
+
+.unmout-component + .welcome-content .welcome-header {
+  opacity: 1;
+  animation: reverse-display-title 0.3s linear forwards;
+}
+
+@keyframes reverse-display-title {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.unmout-component
+  + .welcome-content
+  .react-typewriter-text-wrap
+  .react-typewriter-text {
+  /* transition: 0.7s; */
+  /* transform: translateY(-15rem); */
+  /* opacity: 0; */
+  animation: anim 1s forwards;
+}
+
+@keyframes anim {
+  50% {
+    transform: scale(2);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+
+.unmout-component + .welcome-content + .welcome-btn {
+  animation: reverse-welcome-btn 0.7s ease-out forwards;
+}
+
+@keyframes reverse-welcome-btn {
+  0% {
+    opacity: 1;
+    transform: translate(0rem);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-10rem);
+  }
+}
+
+.unmout-component + .welcome-content + .welcome-btn + svg {
+  transition: 0.7;
+  opacity: 0;
 }
