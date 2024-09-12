@@ -1,5 +1,11 @@
-const { validationOldUser, User } = require("../models/user");
-const generateToken = require("../utilities/generateToken");
+const { User, validationOldUser } = require("../../models/user");
+const jwt = require("jsonwebtoken");
+//create new token
+const createToken = (_id, isAdmin) => {
+  return jwt.sign({ _id: _id, isAdmin: isAdmin }, process.env.JWT_SECRET_KEY, {
+    expiresIn: "30d",
+  });
+};
 
 const loginUser = async (req, res) => {
   const { error } = validationOldUser.validate(req.body);
@@ -8,16 +14,16 @@ const loginUser = async (req, res) => {
   }
 
   const { email, password } = req.body;
-
   try {
-    const user = await User.loginUser(email, password);
+    const user = await User.login(email, password);
 
     //create token
-    const token = generateToken(user._id);
+    const token = createToken(user._id, user.isAdmin);
 
     res.status(200).json({ user, token });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
 module.exports = { loginUser };
