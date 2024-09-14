@@ -13,11 +13,9 @@ const DataTable = ({
   setNewInputIsAppear,
 }) => {
   const [isPending, setIsPending] = useState(false);
-  const [disable, setDisable] = useState(true);
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [filtredData, setFiltredData] = useState("");
-  const [rowId, setRowId] = useState("");
 
   const {
     register,
@@ -166,7 +164,6 @@ const DataTable = ({
     if (localStorage.getItem("isAdmin")) {
       fetchingData();
     }
-    console.log(rowId);
   }, []);
   return (
     <>
@@ -220,36 +217,17 @@ const DataTable = ({
                         );
                   })
                   .map((row, index) => (
-                    <form
+                    <div
                       key={index}
                       className={`row ${index % 2 !== 0 ? "spet" : ""}`}
                     >
                       <div className="grid-item item id">{index + 1}</div>
-                      <input
-                        className={`grid-item item ${
-                          rowId === row._id ? "rotingtxt" : ""
-                        }`}
-                        value={rowId === row._id ? "Unchangebale" : row._id}
-                        disabled
-                      />
-                      <input
-                        className="grid-item item"
-                        defaultValue={row.firstName}
-                        disabled={rowId !== row._id}
-                      />
-                      <input
-                        className="grid-item item"
-                        defaultValue={row.lastName}
-                        disabled={rowId !== row._id}
-                      />
-
-                      <input
-                        type="date"
-                        className="grid-item item"
-                        defaultValue={row.birthday.replaceAll("-", "/")}
-                        disabled={rowId !== row._id}
-                      />
-
+                      <div className="grid-item item">{row._id}</div>
+                      <div className="grid-item item">{row.firstName}</div>
+                      <div className="grid-item item">{row.lastName}</div>
+                      <div className="grid-item item">
+                        {row.birthday.replaceAll("-", "/")}
+                      </div>
                       <div className="grid-item item">{row.email}</div>
                       <div className="grid-item item">{row.password}</div>
                       <div className="grid-item item">
@@ -260,37 +238,22 @@ const DataTable = ({
                       </div>
                       <div className="grid-item item">{row.createdAt}</div>
                       <div className="grid-item item">{row.updatedAt}</div>
-                      {rowId === row._id ? (
-                        <div className="grid-item item sticky-column bttns">
-                          <button className="add">Add</button>
-                          <button
-                            className="cancel"
-                            onClick={() => setNewInputIsAppear("")}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="grid-item item sticky-column">
+                      <div className="grid-item item sticky-column">
+                        <FontAwesomeIcon
+                          className="sticky-btns"
+                          icon={faPen}
+                          data-id={row._id}
+                        />
+                        <div>
                           <FontAwesomeIcon
-                            className="sticky-btns"
-                            icon={faPen}
                             data-id={row._id}
-                            onClick={(e) =>
-                              setRowId(e.currentTarget.dataset.id)
-                            }
+                            onClick={(e) => handleDelete(e, "user")}
+                            className="sticky-btns"
+                            icon={faTrash}
                           />
-                          <div>
-                            <FontAwesomeIcon
-                              data-id={row._id}
-                              onClick={(e) => handleDelete(e, "user")}
-                              className="sticky-btns"
-                              icon={faTrash}
-                            />
-                          </div>
                         </div>
-                      )}
-                    </form>
+                      </div>
+                    </div>
                   ))}
 
                 <form
@@ -404,7 +367,7 @@ const DataTable = ({
                         );
                   })
                   .map((row, index) => (
-                    <form
+                    <div
                       key={index}
                       className={`row ${index % 2 !== 0 ? "spet" : ""}`}
                     >
@@ -446,7 +409,7 @@ const DataTable = ({
                           icon={faTrash}
                         />
                       </div>
-                    </form>
+                    </div>
                   ))}
 
                 <form
