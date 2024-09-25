@@ -30,7 +30,7 @@ const updateUser = async (req, res) => {
         errors: error.errors,
       });
     }
-    console.log(error);
+
     res.status(500).json("Server Error");
   }
 };
