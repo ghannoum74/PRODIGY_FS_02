@@ -12,7 +12,7 @@ server.use(express.json());
 
 server.use("/auth/user", user);
 server.use("/user/tasks", tasks);
-server.use("/admin/tasks", administrator);
+server.use("/admin", administrator);
 mongoose
   .connect(process.env.DATABASE_URL)
   .then(() => {
