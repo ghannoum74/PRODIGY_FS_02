@@ -12,10 +12,12 @@ import PropTypes from "prop-types";
 import Submit from "../authenticationComponents/Submit";
 import { inputsData } from "../../utilities/inputsData";
 import AnimateLoginSignin from "../../utilities/pageAnimation/AnimateLoginSignin";
+import { useNavigate } from "react-router-dom";
 
 const AdminAuthentication = ({ setIsAdminAuthenticated }) => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -53,7 +55,7 @@ const AdminAuthentication = ({ setIsAdminAuthenticated }) => {
         data
       );
       if (result.status === 200) {
-        toast.success("Form Submited Successfuly!", {
+        toast.success("Welcome Home Boss!", {
           hideProgressBar: true,
         });
         setIsAdminAuthenticated(true);
@@ -68,10 +70,10 @@ const AdminAuthentication = ({ setIsAdminAuthenticated }) => {
       }
       reset();
     } catch (error) {
-      if (error.response?.data?.error) {
+      if (error.response?.data?.message) {
         setError("apiError", {
           type: "server",
-          message: error.response.data.error,
+          message: error.response.data.message,
         });
       } else if (error.response?.data) {
         setError("apiError", {
@@ -113,7 +115,7 @@ const AdminAuthentication = ({ setIsAdminAuthenticated }) => {
             action={import.meta.env.VITE_REACT_APP_POST_LOGIN_UR}
             method="POST"
           >
-            <div className="cont-input" key={inputsData[3].id}>
+            <div className="cont-input">
               <input
                 name={inputsData[3].name}
                 id={inputsData[3].id}
@@ -137,7 +139,7 @@ const AdminAuthentication = ({ setIsAdminAuthenticated }) => {
               </div>
             </div>
 
-            <div className="cont-input" key={inputsData[4].id}>
+            <div className="cont-input">
               <input
                 id={inputsData[4].id}
                 type={isPasswordShow ? "text" : inputsData[4].type}
@@ -181,7 +183,21 @@ const AdminAuthentication = ({ setIsAdminAuthenticated }) => {
             </Link> */}
             </div>
 
-            <Submit caption="" btn="Log in" />
+            <div className="last-one">
+              <div
+                className="switch-bttn"
+                style={{
+                  backgroundColor: "var(--errorColor)",
+                  cursor: "pointer",
+                }}
+                onClick={() => navigate("/")}
+              >
+                return
+              </div>
+              <button type="submit" className="switch-bttn">
+                Log in
+              </button>
+            </div>
           </form>
         </AnimateLoginSignin>
       </motion.div>

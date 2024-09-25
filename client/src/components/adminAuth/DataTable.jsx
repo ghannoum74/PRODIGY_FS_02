@@ -7,15 +7,20 @@ import { inputsData } from "../../utilities/inputsData";
 import { useForm } from "react-hook-form";
 import useDelete from "../../hooks/useDelete";
 import { toast, ToastContainer } from "react-toastify";
+import useUpdate from "../../hooks/useUpdate";
+
 const DataTable = ({
   showUsersData,
   newInputIsAppear,
   setNewInputIsAppear,
+  isAdminAuthenticated,
 }) => {
   const [isPending, setIsPending] = useState(false);
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [filtredData, setFiltredData] = useState("");
+  const [rowId, setRowId] = useState("");
+  const [updatedData, setUpdatedData] = useState({});
 
   const {
     register,
@@ -27,6 +32,7 @@ const DataTable = ({
   } = useForm();
 
   const { deleteItem, loading, error } = useDelete();
+  const { updateItem, isLoading } = useUpdate();
 
   const fetchingData = async () => {
     setIsPending(true);
@@ -69,7 +75,8 @@ const DataTable = ({
     delete data.type;
     // i didn't know from where i get the confirm password
     delete data.confirmPassword;
-    console.log(data);
+    delete data.dueDate;
+
     try {
       const result = await axios.post(
         import.meta.env.VITE_REACT_CREATE_USER_ADMIN,
@@ -94,7 +101,6 @@ const DataTable = ({
       }
       reset();
     } catch (error) {
-      console.log(error);
       if (error.response?.data?.error) {
         setError("apiError", {
           type: "server",
@@ -135,7 +141,6 @@ const DataTable = ({
         }
       );
       if (result.status === 200) {
-        console.log(result);
         toast.success("Task Added Successfuly!", {
           hideProgressBar: true,
         });
@@ -148,7 +153,6 @@ const DataTable = ({
       }
       reset();
     } catch (error) {
-      console.log(error);
       if (error.response?.data?.error) {
         setError("apiError", {
           type: "server",
@@ -160,11 +164,41 @@ const DataTable = ({
     }
   };
 
+  const handleUpdatedData = (e) => {
+    const { name, value } = e.target;
+    const id = e.target.dataset.id;
+    setUpdatedData((prevState) => ({
+      ...prevState,
+      [id]: {
+        ...prevState[id],
+        [name]: value,
+      },
+    }));
+  };
+
+  const handleUpdateForm = async (e, type) => {
+    e.preventDefault();
+
+    const result = await updateItem(rowId, type, updatedData[rowId]);
+    if (result) {
+      setRowId("");
+      setUpdatedData("");
+      fetchingData();
+    }
+  };
+
+  const handleCancelBtn = () => {
+    setRowId("");
+    setUpdatedData("");
+    fetchingData();
+  };
+
   useEffect(() => {
     if (localStorage.getItem("isAdmin")) {
       fetchingData();
     }
-  }, []);
+  }, [isAdminAuthenticated]);
+
   return (
     <>
       <ToastContainer />
@@ -173,15 +207,13 @@ const DataTable = ({
           <input
             type="text"
             name="searching-bar"
-            placeholder={`Searching by  ${
-              showUsersData ? "First name" : "Title"
-            }`}
+            placeholder={`Searching by  `}
             onChange={(e) => setFiltredData(e.target.value)}
           />
         </div>
       </div>
       <div className="dataTable">
-        {isPending || loading ? (
+        {isPending || loading || isLoading ? (
           <span className="loader"></span>
         ) : (
           <div className="grid-item-container">
@@ -199,8 +231,8 @@ const DataTable = ({
                   "Gender",
                   "createdAt",
                   "Last update",
-                ].map((elmnt, index) => (
-                  <div key={index} className="grid-item header id">
+                ].map((elmnt) => (
+                  <div key={elmnt} className="grid-item header id">
                     {elmnt}
                   </div>
                 ))}
@@ -217,43 +249,140 @@ const DataTable = ({
                         );
                   })
                   .map((row, index) => (
-                    <div
-                      key={index}
+                    <form
+                      onSubmit={(e) => handleUpdateForm(e, "user")}
+                      key={row._id}
                       className={`row ${index % 2 !== 0 ? "spet" : ""}`}
                     >
                       <div className="grid-item item id">{index + 1}</div>
-                      <div className="grid-item item">{row._id}</div>
-                      <div className="grid-item item">{row.firstName}</div>
-                      <div className="grid-item item">{row.lastName}</div>
-                      <div className="grid-item item">
-                        {row.birthday.replaceAll("-", "/")}
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id ? "Unchangebale" : row._id}
                       </div>
-                      <div className="grid-item item">{row.email}</div>
-                      <div className="grid-item item">{row.password}</div>
-                      <div className="grid-item item">
-                        {row.isAdmin.toString()}
+                      <input
+                        value={updatedData.firstName}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                        pattern="^[a-zA-Z][a-zA-Z0-9 ]*$"
+                        name="firstName"
+                        className="grid-item item"
+                        defaultValue={row.firstName}
+                        disabled={rowId !== row._id}
+                      />
+                      <input
+                        className="grid-item item"
+                        defaultValue={row.lastName}
+                        disabled={rowId !== row._id}
+                        name="lastName"
+                        pattern="^[a-zA-Z][a-zA-Z0-9 ]*$"
+                        value={updatedData.lastName}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                      />
+
+                      <input
+                        type="date"
+                        className="grid-item item"
+                        defaultValue={row.birthday}
+                        disabled={rowId !== row._id}
+                        // {...register("birthday")}
+                        name="dueDate"
+                        value={updatedData.dueDate}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                      />
+
+                      <input
+                        className="grid-item item"
+                        defaultValue={row.email}
+                        disabled={rowId !== row._id}
+                        pattern="^[a-zA-Z][a-zA-Z0-9]{2,}@(gmail|hotmail).com$"
+                        name="email"
+                        value={updatedData.email}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                      />
+
+                      <div
+                        style={{ cursor: "not-allowed" }}
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id ? "Unchangebale" : row.password}
                       </div>
-                      <div className="grid-item item">
-                        {row.gender || "not selected"}
+                      <select
+                        className="grid-item item"
+                        defaultValue={row.isAdmin.toString()}
+                        name="isAdmin"
+                        disabled={rowId !== row._id}
+                        value={updatedData.isAdmin}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                      >
+                        <option value={true}>Admin</option>
+                        <option value={false}>User</option>
+                      </select>
+                      <select
+                        className="grid-item item"
+                        defaultValue={row.gender || "rather not say"}
+                        disabled={rowId !== row._id}
+                        name="gender"
+                        value={updatedData.gender}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                      >
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="rather not say">rather not say</option>
+                      </select>
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id ? "Unchangebale" : row.createdAt}
                       </div>
-                      <div className="grid-item item">{row.createdAt}</div>
-                      <div className="grid-item item">{row.updatedAt}</div>
-                      <div className="grid-item item sticky-column">
-                        <FontAwesomeIcon
-                          className="sticky-btns"
-                          icon={faPen}
-                          data-id={row._id}
-                        />
-                        <div>
-                          <FontAwesomeIcon
-                            data-id={row._id}
-                            onClick={(e) => handleDelete(e, "user")}
-                            className="sticky-btns"
-                            icon={faTrash}
-                          />
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id ? "Unchangebale" : row.updatedAt}
+                      </div>
+                      {rowId === row._id ? (
+                        <div className="grid-item item sticky-column bttns disabled">
+                          <button className="add" type="submit">
+                            Add
+                          </button>
+                          <button className="cancel" onClick={handleCancelBtn}>
+                            Cancel
+                          </button>
                         </div>
-                      </div>
-                    </div>
+                      ) : (
+                        <div className="grid-item item sticky-column">
+                          <FontAwesomeIcon
+                            className="sticky-btns"
+                            icon={faPen}
+                            data-id={row._id}
+                            onClick={(e) =>
+                              setRowId(e.currentTarget.dataset.id)
+                            }
+                          />
+                          <div>
+                            <FontAwesomeIcon
+                              data-id={row._id}
+                              onClick={(e) => handleDelete(e, "user")}
+                              className="sticky-btns"
+                              icon={faTrash}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </form>
                   ))}
 
                 <form
@@ -349,8 +478,8 @@ const DataTable = ({
                   "Due Date",
                   "createdAt",
                   "Last update",
-                ].map((elmnt, index) => (
-                  <div key={index} className="grid-item header id">
+                ].map((elmnt) => (
+                  <div key={elmnt} className="grid-item header id">
                     {elmnt}
                   </div>
                 ))}
@@ -367,49 +496,139 @@ const DataTable = ({
                         );
                   })
                   .map((row, index) => (
-                    <div
-                      key={index}
+                    <form
+                      onSubmit={(e) => handleUpdateForm(e, "task")}
+                      key={row._id}
                       className={`row ${index % 2 !== 0 ? "spet" : ""}`}
                     >
                       <div className="grid-item item id">{index + 1}</div>
-                      <div className="grid-item item">{row._id}</div>
-                      <div className="grid-item item">{row.title}</div>
-                      <div className="grid-item item">{row.description}</div>
-                      <div className="grid-item item">{row.type}</div>
-                      <div className="grid-item item">
-                        {
-                          Object.values(users)?.find(
-                            (user) => user._id === row.user
-                          )?.firstName
-                        }
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id ? "Unchangebale" : row._id}
                       </div>
-                      <div className="grid-item item">
-                        {
-                          Object.values(users)?.find(
-                            (user) => user._id === row.user
-                          )?.lastName
-                        }
+                      <input
+                        value={updatedData.title}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                        pattern="^[a-zA-Z][a-zA-Z0-9 ]*$"
+                        name="title"
+                        className="grid-item item"
+                        defaultValue={row.title}
+                        disabled={rowId !== row._id}
+                      />
+                      <input
+                        value={updatedData.description}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                        pattern="^[a-zA-Z][a-zA-Z0-9 ]*$"
+                        name="description"
+                        className="grid-item item"
+                        defaultValue={row.description}
+                        disabled={rowId !== row._id}
+                      />
+
+                      <select
+                        defaultValue={row.type}
+                        disabled={rowId !== row._id}
+                        name="type"
+                        value={updatedData.type}
+                        onChange={handleUpdatedData}
+                        data-id={row._id}
+                        className="grid-item item"
+                      >
+                        <option>health</option>
+                        <option>work</option>
+                        <option>shopping</option>
+                        <option>personal</option>
+                      </select>
+
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id
+                          ? "Unchangebale"
+                          : Object.values(users)?.find(
+                              (user) => user._id === row.user
+                            )?.firstName}
                       </div>
-                      <div className="grid-item item">
-                        {
-                          Object.values(users)?.find(
-                            (user) => user._id === row.user
-                          )?.email
-                        }
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id
+                          ? "Unchangebale"
+                          : Object.values(users)?.find(
+                              (user) => user._id === row.user
+                            )?.lastName}
                       </div>
-                      <div className="grid-item item">{row.dueDate}</div>
-                      <div className="grid-item item">{row.createdAt}</div>
-                      <div className="grid-item item">{row.updatedAt}</div>
-                      <div className="grid-item item sticky-column">
-                        <FontAwesomeIcon className="sticky-btns" icon={faPen} />
-                        <FontAwesomeIcon
-                          className="sticky-btns"
-                          data-id={row._id}
-                          onClick={(e) => handleDelete(e, "task")}
-                          icon={faTrash}
-                        />
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id
+                          ? "Unchangebale"
+                          : Object.values(users)?.find(
+                              (user) => user._id === row.user
+                            )?.email}
                       </div>
-                    </div>
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id ? "Unchangebale" : row.dueDate}
+                      </div>
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id ? "Unchangebale" : row.createdAt}
+                      </div>
+                      <div
+                        className={`grid-item item ${
+                          rowId === row._id ? "rotingtxt" : ""
+                        }`}
+                      >
+                        {rowId === row._id ? "Unchangebale" : row.updatedAt}
+                      </div>
+                      {rowId === row._id ? (
+                        <div className="grid-item item sticky-column bttns disabled">
+                          <button className="add" type="submit">
+                            Add
+                          </button>
+                          <button className="cancel" onClick={handleCancelBtn}>
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="grid-item item sticky-column">
+                          <FontAwesomeIcon
+                            className="sticky-btns"
+                            icon={faPen}
+                            data-id={row._id}
+                            onClick={(e) =>
+                              setRowId(e.currentTarget.dataset.id)
+                            }
+                          />
+                          <div>
+                            <FontAwesomeIcon
+                              data-id={row._id}
+                              onClick={(e) => handleDelete(e, "task")}
+                              className="sticky-btns"
+                              icon={faTrash}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </form>
                   ))}
 
                 <form
@@ -420,8 +639,8 @@ const DataTable = ({
                 >
                   <div className="grid-item item id">{tasks?.length + 1}</div>
                   <div className="grid-item item rotingtxt">Unchangebale</div>
-                  {["title", "description"].map((task, index) => (
-                    <div className="grid-item item" key={index}>
+                  {["title", "description"].map((task) => (
+                    <div className="grid-item item" key={task}>
                       <input
                         className="created-input-admin"
                         type="text"
@@ -462,8 +681,8 @@ const DataTable = ({
                       style={{ padding: "0.2rem" }}
                       {...register("email")}
                     >
-                      {users.map((user, index) => (
-                        <option key={index} value={user.email}>
+                      {users.map((user) => (
+                        <option key={user._id} value={user.email}>
                           {user.email}
                         </option>
                       ))}
@@ -507,6 +726,7 @@ const DataTable = ({
 
 DataTable.propTypes = {
   showUsersData: PropTypes.bool,
+  isAdminAuthenticated: PropTypes.bool,
   newInputIsAppear: PropTypes.string,
   setNewInputIsAppear: PropTypes.func,
 };
