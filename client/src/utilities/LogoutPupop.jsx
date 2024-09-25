@@ -20,7 +20,7 @@ const LogoutPupop = ({ setLogoutPupop }) => {
           transition={{ duration: 0.2 }}
           className="container-authPage"
         >
-          <h5>Are you sure do you want leave use?</h5>
+          <h5>Are you sure do you want leave us?</h5>
           <div className="btn-logout-pupop">
             <button className="switch-bttn yes" onClick={handleLogout}>
               Yes
