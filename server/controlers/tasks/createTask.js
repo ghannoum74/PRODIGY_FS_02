@@ -36,7 +36,7 @@ const createTask = async (req, res) => {
       user: req.user._id,
     });
 
-    res.status(201).json({ task });
+    res.status(200).json({ task });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
