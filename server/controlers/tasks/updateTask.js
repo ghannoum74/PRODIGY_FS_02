@@ -3,7 +3,6 @@ const Tasks = require("../../models/tasks");
 const updateTask = async (req, res) => {
   const data = req.body;
 
-  console.log(data);
   if (!data.taskId) {
     return res
       .status(400)
@@ -11,7 +10,7 @@ const updateTask = async (req, res) => {
   }
   const sameDate = await Tasks.findOne({
     dueDate: data.dueDate,
-    user: req.user._id, // Make sure to match the user
+    user: req.user._id,
   });
 
   if (sameDate) {
